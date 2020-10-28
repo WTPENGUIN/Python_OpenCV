@@ -61,6 +61,7 @@ while(True):
     #알람 활성화 판단
     if (isDetect == True) and (nSec - pSec >= 5):
         print('Detect!')
+        print('TEST CODE!')
         pSec = time.time()
     
     if imageInvert:
