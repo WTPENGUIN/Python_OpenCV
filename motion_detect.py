@@ -2,16 +2,56 @@
 #필요 모듈 임포트
 import cv2
 import time
+import socket
+import json
+import sys
 
 #변수 선언
 imageInvert = 1
+CAMARA_URL = 0
 isDetect = 0
+
+#소켓 통신 변수
+HOST = ""
+PORT = ""
+ID = ""
+PASS = ""
+
+#설정 파일
+file_path = "./config.json"
+
+#초기화 함수
+def init():
+    global imageInvert, CAMERA_URL, HOST, PORT, ID, PASS
+    with open(file_path, "r") as json_file:
+        json_data = json.load(json_file)
+        HOST = json_data['config'][0]['HOST']
+        PORT = json_data['config'][0]['PORT']
+        ID = json_data['config'][0]['ID']
+        PASS = json_data['config'][0]['PASS']
+
+#초기화
+init()
+
+#접속시도
+try:
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect((HOST, PORT))
+
+#예외처리
+except Exception as e:
+    print (e)
+    sys.exit(1)
+
+#ID, PASS 전송
+message = ID + ':' + PASS + ':2'
+client_socket.send(message.encode())
 
 #시간 초기화
 pSec = time.time()
 
 #카메라 열기
-cap=cv2.VideoCapture(0) 
+cap=cv2.VideoCapture("rtsp://10.10.11.63:8080/video/h264") 
 
 #배경 사진 찍기
 ret1,frame1= cap.read()
@@ -60,8 +100,7 @@ while(True):
 
     #알람 활성화 판단
     if (isDetect == True) and (nSec - pSec >= 5):
-        print('Detect!')
-        print('TEST CODE!')
+        client_socket.send('alert'.encode())
         pSec = time.time()
     
     if imageInvert:
